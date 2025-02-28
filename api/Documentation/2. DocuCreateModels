@@ -1,0 +1,12 @@
+1. Create folder Models in api
+2. Create New C# file Post.cs in Models folder
+3. Create New C# file Comment.cs in Models folder
+4. Create Properties (prop+tab) in Post
+        You are going to need an int Id, string Title, string Body, List<Comment> Comments = new List<Comment>();
+
+5. Create Properties (prop+tab) in Comment
+        You are going to need an Int Id, string Title, string Body
+        We will also need to connect the Comment to the Post, include these Properties:
+        public int? PostId { get; set; }
+        //Navigation Property
+        public Post? Post { get; set; }

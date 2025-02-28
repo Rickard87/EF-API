@@ -1,0 +1,61 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Data;
+using api.Mappers;
+using api.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Controllers
+{
+    // Route attribute sets the base route for this controller to "api/post".
+    // For example, if there's an action method [HttpGet] inside this controller, 
+    // it will be accessible at "GET /api/post".
+    [Route("api/post")] 
+    [ApiController]
+    public class PostController : ControllerBase
+    {
+        private readonly ApplicationDBContext _context;
+        public PostController(ApplicationDBContext context)
+        {
+            //We are applying the Databasecontext to this class which we created the database tables from
+            //ApplicationDBContext is there so we can get data out of the database
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            // ToList() startar själva exekveringen av frågan till databasen (SQL-fråga) som EF formulerar åt oss i bakgrunden när vi använder _context.Posts.
+            // Detta kallas för deferred execution (fördröjd exekvering), vilket innebär att vi kan formulera frågan först i en query. Vi kan lägga till filtrering,
+            // sortering och andra operationer innan vi faktiskt exekverar frågan. På så sätt gör vi bara en fråga till databasen istället för flera, vilket förbättrar prestanda.
+            var posts = _context.Posts.ToList()
+            .Select(s => s.ToPostDto());
+            //Returnera resultatet från databasen
+
+            //Ok is just an IActionResult. We could as well declare it as a new IActionResult like so: IActionResult result = Ok(posts); and return result;
+            return Ok(posts);
+        }
+
+
+        // Normally, we would manually set a value to a variable, like: int id = 5;
+        // // However, in this case, the 'id' is automatically retrieved from the URL, 
+        // // specifically from the part of the URL defined as {id}, and it's passed to the method 
+        // // via the [FromRoute] attribute. In this case api/post/{id} (see Route at the top).
+        [HttpGet("{id}")]
+        public IActionResult GetById([FromRoute] int id)
+        {
+            //Find is a form of search that is going to find by the id. You could use First or Default, but Find is best because we are searching for a certain id (and more obvious).
+            var post = _context.Posts.Find(id);
+
+            if(post == null)
+            {
+                //NotFound is a form of IActionResult which saves us having to type out a 404-response.
+                return NotFound();
+            }
+            return Ok(post.ToPostDto());
+        }
+    }
+}

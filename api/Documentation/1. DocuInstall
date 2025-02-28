@@ -1,0 +1,25 @@
+Prerequisites:
+    Install SqlServer Community
+    Install SSMS
+    Install Dotnet(8) 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        //The reason the project is dotnet 8.0 is because the project had a conflict with the firewall that I couldn't solve at the time. 
+
+                        //Kind of important that you try the dotnet watch run command in step 3 and see Swagger in your browser.
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1. Run terminal: dotnet new webapi -o api
+2. CD into api
+3. Run terminal: dotnet watch run   (Preview weather api default project) 
+4. Clean up WeatherAPI code from Program.cs
+5. Install or make sure Extensions are installed in VS CODE:
+     C# DevKit
+     C#
+     .NET Extension Pack
+     .NET Install Tool
+     NuGet Gallery                   (Access to Nuget Packages)
+     Prettier                        (Makes code look better and formats for you)
+     C# Extensions JosKreativ        (Gives you ability to right-click and quickly add C# files)
+
+
+Comments:
+* Project did not start in browser with .NET 9 due to conflict with Firewall (dotnet watch run)

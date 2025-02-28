@@ -1,0 +1,46 @@
+//We can use End-points to get one thing, many things, one-to-many, many-to-one, many-to-many
+
+1. Create a new folder in Api called Controllers
+2. Create a new C# file PostController.cs inside Controllers folder
+//We will eventually also need a CommentController. This is done by design to separate concerns
+
+3. Make the PostController class inherit from ControllerBase (PostController : ControllerBase)
+//Best practice to bring in ControllerBase inheritance before adding the attributes
+Add attributes to ControllerBase class:
+[Route("api/post")] 
+[ApiController]
+
+4. Make a constructor for the class that takes ApplicationDBContext as a parameter, add a private field ApplicationDBContext and assign it to context inside the constructor
+
+
+//Now we're going to create our first HttpGet(s)
+//Remember CRUD principles, Create Read Update Delete. Get = Read (Select [*] FROM)
+5.      [HttpGet]
+        public IActionResult GetAll()
+        {
+            var posts = _context.Posts.ToList();
+
+            return Ok(posts);
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetById([FromRoute] int id)
+        {
+            var post = _context.Posts.Find(id);
+
+            if(post == null)
+            {
+                return NotFound();
+            }
+            return Ok(post);
+        }
+        //Find more comments inside PostController
+
+6. We need to add our controller to our Program.cs
+builder.Services.AddControllers();
+and right before App.Run();:
+app.MapControllers();
+//If we don't do this, Swagger will not work and we will get an HTTP request redirect error
+
+7. Add some data into table Posts inside SQL, then 'dotnet watch run' in the terminal
+//Success if you can execute without errors and see your data inside Swagger. In worst case, reset the database and migrations and check errors for naming issues

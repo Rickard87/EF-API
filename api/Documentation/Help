@@ -1,0 +1,22 @@
+Useful terminal commands
+    #DOTNET
+    cd >> change directory
+    dotnet watch run >> starts the project and watches for file changes to automatically restart the application
+    dotnet build >> builds the project
+
+    #Entity Framework
+    dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.0 >> include EF SqlServer version 8.0.0
+    dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0 >> include EF Tools version 8.0.0
+    dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0 >> include EF Design version 8.0.0
+    dotnet ef migrations add InitialMigration >> creates a new migration based on the current project setup that includes documentation/version history with unique name {InitialMigration}
+        //essentially shortcut for dotnet ef migrations add init --project . --startup-project . without specifying project and startup-project
+    dotnet ef database update >> commits your migration to setup SQL database
+        //or dotnet ef database update {MigrationName}
+    dotnet ef migrations list >> lists migrations
+    dotnet ef database update 0 >> reverts the database to the initial state before any migrations were applied
+    dotnet ef migrations remove >> removes last migration file // needs dotnet ef database update (to apply changes)
+    rm -rf Migrations >> removes all migrations (-r flag recursive removes all files and subdirectories, -f flag force without asking for confirmation)
+    dotnet ef database drop >> drops current setup SQL database
+
+Comments by the author
+    

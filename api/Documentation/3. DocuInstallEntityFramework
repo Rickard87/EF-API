@@ -1,0 +1,15 @@
+Install from NuGet Gallery or run command in terminal with the .NET version matching your api.csproj:
+    MicrosoftEntityFrameworkCore.SqlServer
+        cd api 
+        dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.0
+
+    MicrosoftEntityFrameworkCore.Tools
+        cd api
+        dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
+
+    MicrosoftEntityFrameworkCore.Design
+        cd api
+        dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
+
+Check Nuget packages installed tab that all packages have been installed.
+It may take some time to load into the NugetGallery

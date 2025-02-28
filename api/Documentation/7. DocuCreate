@@ -1,0 +1,7 @@
+We are going to submit JSON to the server and then the server will use the code that we wrote to put the data inside the database.
+That is practially what happens, with some logic in between.
+We will put our JSON data inside the Entity Framework's Add()-function
+Entity Framework will start tracking the data (it is not saved into the database yet)
+For that we will have to use Entity Framework's SaveChanges()
+
+1. We will go into our api/Controllers/PostController.cs and start building our Post

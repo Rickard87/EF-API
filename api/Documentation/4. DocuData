@@ -1,0 +1,56 @@
+1. Create a new folder in api called Data
+2. Create a new C# file in the folder called ApplicationDBContext.cs
+    //ApplicationDBContext is a giant class that allows us to search our individual tables.
+    //We want to transform database data into objects
+    //This class allows us to specify which table we want
+3. Make the class inherit from ApplicationDBContext : DbContext
+4. Create a constructor for the class (ctor+tab)
+5. Put DbContextOptions dbContextOptions into the constructors formal parameters and pass : base (dbContextOptions) into DbContext inheritance
+6. Create a DbSet
+    //We will grab something from the database and do something with it. All we're doing is manipulating the WHOLE table.
+    //These Properties of both Post and Comment will create the database for us.
+7. Now we go to Program.cs and hook up the database that we just built.
+8. Inside Program.cs, place yourself before the declaration of "var app" or it won't work.
+    //Here we will also define what database we're going to use as options
+    Type:
+        builder.Services.AddDbContext<ApplicationDBContext>(options => 
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+);     //Don't worry, I know we have not done anything with the connection string yet.
+
+9. Start SQL Server Management Studio. //If you cannot Connect, try pressing Trust certificate
+10. Go to Databases folder and Add new Database. Call it BloggerSQLDb
+11. Go to appsettings.json and add a "ConnectionStrings". Make it look like one of these depending on your OS:
+    SQL Server Connection String Template (WINDOWS):  
+    "Data Source={PCNAME}\\SQLEXPRESS;Initial Catalog={DATABASENAME};Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"
+
+    Azure Edge Connection String Template (MAC OS ARM):
+    "Data Source=localhost;Initial Catalog={DATABASENAME};User Id=sa;Password=MyPass@word;Integrated Security=True;TrustServerCertificate=true;Trusted_Connection=false"
+
+//We want to make it DefaultConnection because that's what we have in our Program.cs, they should match.
+//Remember to edit YOUR computer name and YOUR database name
+
+12. If Everything is correctly setup now, we will create our database through the terminal.
+    We will do what's called a "migration". If you already have database tables this will not work.
+
+    dotnet ef migrations add init //This is how we initialize the database. But it will remain unbuilt for now.
+    dotnet ef database update //This is where we actually build the database
+
+13. Go to api.csproj and change InvariantGlobalization bool value to false. If you don't have it you should add it.
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <InvariantGlobalization>false</InvariantGlobalization>
+    </PropertyGroup>
+
+14. Now run in terminal
+        dotnet ef database update //This is where we actually build the database
+    Database should have migrated and primary keys, foreign keys and potential [] attributes added.
+
+
+    Notes:
+    // This with curly braces causes an error in migration, but not in compilation:
+    // It is correct lambda expression
+    builder.Services.AddDbContext<ApplicationDBContext>(options => {
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});

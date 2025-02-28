@@ -1,0 +1,45 @@
+DTO stands for Data Transfer Object and anything in program could be defined as DTO because the term is so big
+However, in the context of .NET Core and in the context of making API's the majority of DTO's are going to fall under this Response / Request DTO format
+All a DTO really does is spruces up your Data. Often you don't want to return the entire object back to the User. DTO's help us trim down that data.
+Imagine asking the SQL database for everything inside a user table (SELECT * FROM User) and then filter the response to the User to see the username but not the password.
+Using DTO's correctly helps us form the SQL question to only ask for Username in its question (SELECT Username FROM User).
+
+1. Create a Dtos folder inside api folder
+2. We also want to create a separate folder for each table inside the Dtos folder (Post and Comment)
+3. Now create PostDto.cs inside Dtos/Post folder
+4. Transfer all of the Properties inside the Models/Post.cs into PostDto.cs
+5. You will notice an error due to wrong namespace for the last row. For now we can comment out the last row with Comment list.
+6.  Create a Mappers folder in inside api folder
+    //I am not a big fan of auto-mapping so we will do this Java-style
+7. Create PostMappers.cs inside Mappers folder and make the class static because we need these as extension methods
+Make it look like this:
+
+public static class PostMappers
+    {
+        public static PostDto ToPostDto(this Post postModel)
+        {
+            return new PostDto
+            {
+                Id = postModel.Id,
+                Title = postModel.Title,
+                Body = postModel.Body,
+                CreatedOn = postModel.CreatedOn
+            };
+        }
+    }
+
+8. We need to make sure our PostController.cs is setup to ask for our DTO.
+//Select is .NET's version of Map(Java).
+Add this to our first HTTPGet GetAll() right after ToList():
+.Select(s => s.ToPostDto())
+
+For the GetByID we just do the same thing but we just put our DTO inside the return.
+return Ok(post.ToPostDto());
+//If you missed it. ToPostDto is the static method we created inside our PostMappers static class.
+
+9. Type dotnet watch run in the terminal and notice how the Comments array have disappeared from the response in Swagger.
+
+//If you want to see the query that proves it sends the correct question to the database, you can add this to your PostController.cs code:
+var postToSQL = _context.Posts.Select(s => s.ToPostDto()).ToQueryString();
+Console.WriteLine($"This is a query string {postToSQL} and it ends here");
+//You cannot put this after ToList() as that is already used to send the query, so create a new variable instead like above.
