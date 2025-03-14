@@ -66,5 +66,23 @@ namespace api.Controllers
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetById), new { id = postModel.Id }, postModel.ToPostDto());
         }
+        [HttpPut]
+        [Route("{id}")]
+        public IActionResult Update([FromRoute] int id, [FromBody] UpdatePostRequestDto updateDto)
+        {
+            var postModel = _context.Posts.FirstOrDefault(x => x.Id == id);
+            if (postModel == null)
+            {
+                return NotFound();
+            }
+
+            postModel.Title = updateDto.Title;
+            postModel.Body = updateDto.Body;
+            postModel.CreatedOn = updateDto.CreatedOn;
+
+            _context.SaveChanges();
+
+            return Ok(postModel.ToPostDto());
+        }
     }
 }
