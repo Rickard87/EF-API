@@ -1,0 +1,33 @@
+A lot of code that we write will be incredibly slow. Database calls and Network calls are slow by nature in the world of computing.
+In the grand scheme of computing these are some of the slowest actions that exist due to that we have to go outside our local code to fetch something.
+Async was invented by C# and stolen by other languages. Async helps us go outside of the current scope.
+It allows us to execute multiple pieces of code at the same time by creating copy-classes that run on other threads than the main thread.
+We can quickly add async to almost any piece of code by naming the method async Task<> and using await as our return.
+The task is just the return type and we can for example return an object <Post>. We have to return something whether it is there or not.
+Await is a fancy word for "make this async". When we add await to a line of code, THAT code will run asynchronous, nothing else.
+.NET adds a "coroutine" when we add await. A coroutine means that we are going to get our code returned in the form of a yield.
+This allows the code to interrupt any other process that is currently going on, quickly return so that we can go on and execute the next piece of code.
+
+Now we're going to switch out a lot of our code to run async.
+We will go into the StockController and add async Task to all the methods with the <IActionResult> as the return type.
+See example below:
+
+1. Go into the StockController so that we can modify our GetAll method to run async.
+2. Make the method look like this:
+    public async Task<IActionResult> GetAll()
+
+3. Now we should break up this code so that it makes more sense what runs async(await) and what does not.
+            var posts = _context.Posts.ToList()
+            .Select(s => s.ToPostDto());
+
+    Often when we add await there is another method call and in this case we change ToList to ToListAsync
+    Make it look like this:
+            var posts = await _context.Posts.ToListAsync();
+            var postDto = posts.Select(s => s.ToPostDto());
+
+Now we have our first async method. To see the other methods go into PostController.cs
+For whatever reason remove does not have an async method.
+
+4. dotnet watch run to try it out.
+
+Our code should already be a little faster but this really shows on bigger projects.
