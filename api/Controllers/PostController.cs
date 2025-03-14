@@ -84,5 +84,20 @@ namespace api.Controllers
 
             return Ok(postModel.ToPostDto());
         }
+        [HttpDelete]
+        [Route("{id}")]
+        public IActionResult Delete([FromRoute] int id)
+        {
+            var postModel = _context.Posts.FirstOrDefault(x => x.Id == id);
+            if (postModel == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(postModel);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
     }
 }

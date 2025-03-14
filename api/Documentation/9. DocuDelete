@@ -1,0 +1,26 @@
+Delete(Remove) is the easiest by far to create. All it entails is sending an Id to the Api where the record should be deleted.
+Entity Framework does most of this for us. The only thing we need to do is use the Id to find the first post or entity we want to delete and pass it into the Remove function of EF.
+And SaveChanges()
+
+1. This time we only need to create a new IActionResult method in PostController, call it Delete
+    It should look like this:
+        [HttpDelete]
+        [Route("{id}")]
+        public IActionResult Delete([FromRoute] int id)
+        {
+            var postModel = _context.Posts.FirstOrDefault(x => x.Id == id);
+            if (postModel == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(postModel);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
+So we are getting the id from route to get this postModel and using Remove from our entity context using that postModel.
+Difference is now we are returning NoContent() as a success for removing with code 204.
+
+Use dotnet watch run to test and delete a record from our database using Entity Framework.
