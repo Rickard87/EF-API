@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
+using api.Dtos.Post;
 using api.Mappers;
 using api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +57,14 @@ namespace api.Controllers
                 return NotFound();
             }
             return Ok(post.ToPostDto());
+        }
+        [HttpPost]
+        public IActionResult Create([FromBody] CreatePostRequestDto postDto)
+        {
+            var postModel = postDto.ToPostFromCreateDto();
+            _context.Add(postModel);
+            _context.SaveChanges();
+            return CreatedAtAction(nameof(GetById), new { id = postModel.Id }, postModel.ToPostDto());
         }
     }
 }

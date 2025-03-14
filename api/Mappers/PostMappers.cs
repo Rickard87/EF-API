@@ -19,5 +19,14 @@ namespace api.Mappers
                 CreatedOn = postModel.CreatedOn
             };
         }
+        public static Post ToPostFromCreateDto(this CreatePostRequestDto postDto)
+        {
+            return new Post
+            {
+                Title = postDto.Title,
+                Body = postDto.Body,
+                CreatedOn = postDto.CreatedOn
+            };
+        }
     }
 }
