@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Post;
+using api.Interfaces;
 using api.Mappers;
 using api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -19,8 +20,10 @@ namespace api.Controllers
     public class PostController : ControllerBase
     {
         private readonly ApplicationDBContext _context;
-        public PostController(ApplicationDBContext context)
+        private readonly IPostRepository _postRepo;
+        public PostController(ApplicationDBContext context, IPostRepository postRepo)
         {
+            _postRepo = postRepo;
             //We are applying the Databasecontext to this class which we created the database tables from
             //ApplicationDBContext is there so we can get data out of the database
             _context = context;
@@ -32,7 +35,7 @@ namespace api.Controllers
             // ToList() startar själva exekveringen av frågan till databasen (SQL-fråga) som EF formulerar åt oss i bakgrunden när vi använder _context.Posts.
             // Detta kallas för deferred execution (fördröjd exekvering), vilket innebär att vi kan formulera frågan först i en query. Vi kan lägga till filtrering,
             // sortering och andra operationer innan vi faktiskt exekverar frågan. På så sätt gör vi bara en fråga till databasen istället för flera, vilket förbättrar prestanda.
-            var posts = await _context.Posts.ToListAsync();
+            var posts = await _postRepo.GetAllAsync();
             var postDto = posts.Select(s => s.ToPostDto());
             //Returnera resultatet från databasen
 
@@ -49,7 +52,7 @@ namespace api.Controllers
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             //Find is a form of search that is going to find by the id. You could use First or Default, but Find is best because we are searching for a certain id (and more obvious).
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _postRepo.GetByIdAsync(id);
 
             if(post == null)
             {
@@ -62,25 +65,18 @@ namespace api.Controllers
         public async Task<IActionResult> Create([FromBody] CreatePostRequestDto postDto)
         {
             var postModel = postDto.ToPostFromCreateDto();
-            await _context.AddAsync(postModel);
-            await _context.SaveChangesAsync();
+            await _postRepo.CreateAsync(postModel);
             return CreatedAtAction(nameof(GetById), new { id = postModel.Id }, postModel.ToPostDto());
         }
         [HttpPut]
         [Route("{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdatePostRequestDto updateDto)
         {
-            var postModel = await _context.Posts.FirstOrDefaultAsync(x => x.Id == id);
+            var postModel = await _postRepo.UpdateAsync(id, updateDto);
             if (postModel == null)
             {
                 return NotFound();
             }
-
-            postModel.Title = updateDto.Title;
-            postModel.Body = updateDto.Body;
-            postModel.CreatedOn = updateDto.CreatedOn;
-
-            await _context.SaveChangesAsync();
 
             return Ok(postModel.ToPostDto());
         }
@@ -88,14 +84,12 @@ namespace api.Controllers
         [Route("{id}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            var postModel = await _context.Posts.FirstOrDefaultAsync(x => x.Id == id);
+            var postModel = await _postRepo.DeleteAsync(id);
+            
             if (postModel == null)
             {
                 return NotFound();
             }
-
-            _context.Remove(postModel);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

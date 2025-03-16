@@ -1,0 +1,45 @@
+"Our Controller is getting way too big". We need to start using Repository pattern.
+Controllers are for controlling. Databases are for database calling. We don't want to be mixing them.
+How do we fix this? Well ancient code wisdom will tell us that we need to "Code to an interface".
+Nobody knows what that means, but it is slang for "Code to an abstraction".
+When we code to an abstraction we are taking repetetive code i.e. FirstOrDefault and turn it into an abstraction.
+
+To do that we use Repository pattern. Repository pattern lets us change all the FirstOrDefault into "FindPost".
+This is what Dependency injection and Repository patterns helps us do. "FindPost" is an abstraction, we are hiding code behind this expression.
+It also lets us quickly change how we want our data or filtering in one place.
+
+1. Start by creating a folder for our Interfaces. Create a folder called Interfaces inside api.
+2. Create a new csharp interface called IPostRepository inside Interfaces folder.
+3. Create a Task list of type Post inside the Interface, called GetAllAsync();
+    It should look like this:
+    public interface IPostRepository
+    {
+        Task<List<Post>> GetAllAsync();
+        
+    }
+4. Create a new folder called Repository inside api.
+5. Create a new csharp file inside the Repository folder called PostRepository and implement the IPostRepository interface to its class.
+6. Now we get rid of a lot of boiler-plate code inside PostController.cs by putting our database call inside our PostRepository.cs
+    It should look like this:
+    public class PostRepository : IPostRepository
+    {
+        private readonly ApplicationDBContext _context;
+        public PostRepository(ApplicationDBContext context)
+        {
+            _context = context;
+        }
+        public Task<List<Post>> GetAllAsync()
+        {
+            return _context.Posts.ToListAsync();
+        }
+    }
+
+    So we have also added a private field AppliCationDBContext so that we have our database inside this file instead of inside our PostController,
+    which we have a bunch of refactoring to do now, check out PostController.cs and PostRepository.cs for the result after final step.
+
+    Don't forget to also bring in : using Microsoft.EntityFrameworkCore;
+
+7. Add this line to the builder above var app = builder.Build(); in Program.cs:
+    builder.Services.AddScoped<IPostRepository, PostRepository>();
+
+8. 4. dotnet watch run to try it out.

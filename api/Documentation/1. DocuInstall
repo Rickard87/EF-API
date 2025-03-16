@@ -23,3 +23,4 @@ Prerequisites:
 
 Comments:
 * Project did not start in browser with .NET 9 due to conflict with Firewall (dotnet watch run)
+* Note that between step 5. Controllers and step 10. DocuAsync, you should be looking at PostControllerOld.cs, step 11. RepositoryPattern has a lot of refactoring
