@@ -1,0 +1,241 @@
+We're going to start building our Comment system now. One Post can have many comments, known as a one-to-many relationship.
+To get one-to-many to work, i.e. making sure that when we fetch Posts, they include comments,
+therefore we need to edit some of our Post-files. It's all below.
+This step will contain many new files, code and some new NuGet packages
+
+Install new packages 
+    Newtonsoft.Json (latest version)
+    Microsoft.AspNetCore.Mvc.NewtonsoftJson (v 8.0.0)
+
+    The reason we are doing this is to prevent object cycles, which is an unfortunate part of EF.NET Core.
+    So we have to include NewtonsoftJson in the builder like this in Program.cs
+        builder.Services.AddControllers().AddNewtonsoftJson(options => {
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        });
+
+
+1. Create CommentDto.cs inside Dtos/Comment folder.
+    it should look like this:
+    public class CommentDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public int? PostId { get; set; }
+    }
+2. Create CreateCommentDto.cs inside Dtos/Comment folder.
+    it should look like this:
+    public class CreateCommentDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+    }
+3. Create UpdateCommentRequestDto.cs inside Dtos/Comment folder.
+    it should look like this:
+    public class UpdateCommentRequestDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+    }
+4. Edit IPostRepository.cs inside Interfaces folder and add this:
+    Task<bool> PostExists(int id);
+5. Edit PostRepository.cs inside Repository folder and add this method:
+    public async Task<bool> PostExists(int id)
+    {
+        return await _context.Posts.AnyAsync(s => s.Id == id);
+    }
+6. Create CommentMappers.cs inside Mappers folder
+    it should look like this:
+    public static class CommentMappers
+    {
+        public static CommentDto ToCommentDto(this Comment commentModel)
+        {
+            return new CommentDto
+            {
+                Id = commentModel.Id,
+                Title = commentModel.Title,
+                Body = commentModel.Body,
+                CreatedOn = commentModel.CreatedOn,
+                PostId = commentModel.PostId
+            };
+        }
+        public static Comment ToCommentFromCreate(this CreateCommentDto commentDto, int postId)
+        {
+            return new Comment
+            {
+                Title = commentDto.Title,
+                Body = commentDto.Body,
+                PostId = postId
+            };
+        }
+        public static Comment ToCommentFromUpdate(this UpdateCommentRequestDto commentDto)
+        {
+            return new Comment
+            {
+                Title = commentDto.Title,
+                Body = commentDto.Body,
+            };
+        }
+    }
+7. Create CommentController.cs inside Controllers folder
+    it should look like this:
+    [Route("api/comment")]
+    [ApiController]
+    public class CommentController : ControllerBase
+    {
+        private readonly ICommentRepository _commentRepo;
+        private readonly IPostRepository _postRepo;
+        public CommentController(ICommentRepository commentRepo, IPostRepository postRepo)
+        {
+            _commentRepo = commentRepo;
+            _postRepo = postRepo;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var comments = await _commentRepo.GetAllAsync();
+
+            var commentDto = comments.Select(s => s.ToCommentDto());
+
+            return Ok(commentDto);
+        }
+        
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById([FromRoute] int id)
+        {
+            var comment = await _commentRepo.GetByIdAsync(id);
+
+            if(comment == null)
+            {
+                return NotFound();
+            }
+            
+            return Ok(comment.ToCommentDto());
+        }
+        [HttpPost("{postId}")]
+        public async Task<IActionResult> Create([FromRoute] int postId, CreateCommentDto commentDto)
+        {
+            if(!await _postRepo.PostExists(postId))
+            {
+                return BadRequest("Post does not exist");
+            }
+
+            var commentModel = commentDto.ToCommentFromCreate(postId);
+            await _commentRepo.CreateAsync(commentModel);
+            return CreatedAtAction(nameof(GetById), new {id = commentModel.Id}, commentModel.ToCommentDto());
+        }
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDto updateDto)
+        {
+            var comment = await _commentRepo.UpdateAsync(id, updateDto.ToCommentFromUpdate());
+
+            if(comment == null)
+            {
+                return NotFound("Comment not found");
+            }
+
+            return Ok(comment.ToCommentDto());
+        }
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var commentModel = await _commentRepo.DeleteAsync(id);
+            if(commentModel == null)
+            {
+                return NotFound("Comment does not exist");
+            }
+
+            return Ok(commentModel);
+        }
+    }
+8. Create ICommentRepository.cs inside Interfaces folder.
+    it should look like this:
+    public interface ICommentRepository
+    {
+        Task<List<Comment>> GetAllAsync();
+        Task<Comment?> GetByIdAsync(int id);
+        Task<Comment> CreateAsync(Comment commentModel);
+        Task<Comment?> UpdateAsync(int id, Comment commentModel);
+        Task<Comment?> DeleteAsync(int id);
+    }
+9. Create CommentRepository.cs inside Repository folder.
+    it should look like this:
+    public class CommentRepository : ICommentRepository
+    {
+        private readonly ApplicationDBContext _context;
+        public CommentRepository(ApplicationDBContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<Comment> CreateAsync(Comment commentModel)
+        {
+            await _context.Comments.AddAsync(commentModel);
+            await _context.SaveChangesAsync();
+            return commentModel;
+        }
+
+        public async Task<Comment?> DeleteAsync(int id)
+        {
+            var commentModel = await _context.Comments.FirstOrDefaultAsync(x => x.Id == id);
+            if(commentModel == null)
+            {
+                return null;
+            }
+
+            _context.Comments.Remove(commentModel);
+            await _context.SaveChangesAsync();
+            return commentModel;
+
+        }
+
+        public async Task<List<Comment>> GetAllAsync()
+        {
+            return await _context.Comments.ToListAsync();
+        }
+
+        public async Task<Comment?> GetByIdAsync(int id)
+        {
+            return await _context.Comments.FindAsync(id);
+        }
+
+        public async Task<Comment?> UpdateAsync(int id, Comment commentModel)
+        {
+            var existingComment = await _context.Comments.FindAsync(id);
+
+            if(existingComment == null)
+            {
+                return null;
+            }
+
+            existingComment.Title = commentModel.Title;
+            existingComment.Body = commentModel.Body;
+            
+            await _context.SaveChangesAsync();
+
+            return existingComment;
+        }
+    }
+10. Edit PostDto.cs inside Dtos/Post folder and add this:
+    public List<CommentDto> Comments { get; set; }
+11. Edit PostRepository.cs inside Repository folder so that these methods look like this:
+        public async Task<List<Post>> GetAllAsync()
+        {
+            return await _context.Posts.Include(c => c.Comments).ToListAsync();
+            // code before step 12 Comment System below
+            // return await _context.Posts.ToListAsync();
+        }
+
+        public async Task<Post?> GetByIdAsync(int id)
+        {
+            //Find does not work with include
+            return await _context.Posts.Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == id);
+            // code before step 12 Comment System
+            // return await _context.Posts.FindAsync(id);
+        }
+12. Edit PostMappers.cs inside Mappers folder and add this:
+        Comments = postModel.Comments.Select(c => c.ToCommentDto()).ToList()

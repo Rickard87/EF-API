@@ -18,5 +18,21 @@ Useful terminal commands
     rm -rf Migrations >> removes all migrations (-r flag recursive removes all files and subdirectories, -f flag force without asking for confirmation)
     dotnet ef database drop >> drops current setup SQL database
 
+    #Dependency Injection
+    99% of Dependency Injection is constructor based. The reason we need Dependency Injection is because we need to "preheat" the
+    methaphorical "code oven". By doing Dependency Injection we can get access to objects that we need for things to be lined up for us,
+    so that when we use methods that we create, we have objects on-hand.
+    Say that we are using DBContext a lot in our code. We would want to create a constructor that takes DBContext 
+    We need "stuff" before we create our repository.
+    By creating an interface and implementing that in a class we can tell the builder DI-container that these belong together.
+    To then use the methods all we need to do is insert the interface into the constructor of the class we need it in.
+    That allows for polymorfism, by having a loose coupling to this implementation in our DB Container, so that we can easily switch out
+    what implementation of the interface we would like to use.
+    We also need to inform the builder about classes that are not instantiated automatically by .NET Core (e.g., controllers inherit from ControllerBase, which allows them to be resolved automatically).
+    These are examples of registering the Dependencies into the DI-container:
+    builder.Services.AddScoped<IPostRepository, PostRepository>();
+    builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+    builder.Services.AddScoped<MyClass>(); // Required because MyClass is not automatically instantiated by .NET Core
+
 Comments by the author
     

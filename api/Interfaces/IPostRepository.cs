@@ -14,5 +14,6 @@ namespace api.Interfaces
         Task<Post> CreateAsync(Post postModel);
         Task<Post?> UpdateAsync(int id, UpdatePostRequestDto postDto);
         Task<Post?> DeleteAsync(int id);
+        Task<bool> PostExists(int id);
     }
 }

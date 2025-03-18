@@ -16,7 +16,9 @@ namespace api.Mappers
                 Id = postModel.Id,
                 Title = postModel.Title,
                 Body = postModel.Body,
-                CreatedOn = postModel.CreatedOn
+                CreatedOn = postModel.CreatedOn,
+                //This line is not implemented until step 12 Comment System
+                Comments = postModel.Comments.Select(c => c.ToCommentDto()).ToList()
             };
         }
         public static Post ToPostFromCreateDto(this CreatePostRequestDto postDto)

@@ -42,12 +42,22 @@ namespace api.Repository
 
         public async Task<List<Post>> GetAllAsync()
         {
-            return await _context.Posts.ToListAsync();
+            return await _context.Posts.Include(c => c.Comments).ToListAsync();
+            // code before step 12 Comment System below
+            // return await _context.Posts.ToListAsync();
         }
 
         public async Task<Post?> GetByIdAsync(int id)
         {
-            return await _context.Posts.FindAsync(id);
+            //Find does not work with include
+            return await _context.Posts.Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == id);
+            // code before step 12 Comment System
+            // return await _context.Posts.FindAsync(id);
+        }
+
+        public async Task<bool> PostExists(int id)
+        {
+            return await _context.Posts.AnyAsync(s => s.Id == id);
         }
 
         public async Task<Post?> UpdateAsync(int id, UpdatePostRequestDto postDto)
