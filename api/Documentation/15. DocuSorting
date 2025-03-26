@@ -20,4 +20,4 @@ We're going to add so that we can order by (sort by) ascending or descending Tit
 
 This adds possibility to order by Title or Body, both ascending and descending order/sorting.
 Run dotnet watch run and type Title or Body as sorting method and use the boolean for ascending or descending by entered category.
-Ascending = Z-A, Descending = A-Z
+Ascending = A-Z, Descending = Z-A

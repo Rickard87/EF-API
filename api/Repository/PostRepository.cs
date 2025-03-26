@@ -68,7 +68,9 @@ namespace api.Repository
                 }
             }
 
-            return await posts.ToListAsync();
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+
+            return await posts.Skip(skipNumber).Take(query.PageSize).ToListAsync();
             // code before step 14 Filtering below
             // return await _context.Posts.Include(c => c.Comments).ToListAsync();
             // code before step 12 Comment System below

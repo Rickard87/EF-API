@@ -1,0 +1,53 @@
+Pagination is important so that we don't return insane an amount of data.
+Pagination will make sure we don't return everything at once and it's going to break everything into pages.
+
+We have .Skip(2)
+and .Take(2)
+
+Skip in this case means that we skip the first 2 elements and take the rest.
+Take means that we take the first 2 elements and skip the rest.
+
+By combining .Skip(2) and .Take(2) we get the magic => we can skip the first 2 and take the next 2.
+
+Once again we use our QueryObject.
+
+1. Go into QueryObject.cs and add 2 Properties with default values like this:
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+
+2. Go into PostRepository.cs and add the pagination to the return like this:
+
+public async Task<List<Post>> GetAllAsync(QueryObject query)
+        {
+            var posts = _context.Posts.Include(c => c.Comments).AsQueryable();
+
+            if(!string.IsNullOrWhiteSpace(query.Title))
+            {
+                posts = posts.Where(p => p.Title.Contains(query.Title));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Body))
+            {
+                posts = posts.Where(p => p.Body.Contains(query.Body));
+            }
+
+            if(!string.IsNullOrWhiteSpace(query.SortBy))
+            {
+                if(query.SortBy.Equals("Title", StringComparison.OrdinalIgnoreCase))
+                {
+                    posts = query.IsDescending ? posts.OrderByDescending(p => p.Title) : posts.OrderBy(p => p.Title);
+                }
+
+                if(query.SortBy.Equals("Body", StringComparison.OrdinalIgnoreCase))
+                {
+                    posts = query.IsDescending ? posts.OrderByDescending(p => p.Body) : posts.OrderBy(p => p.Body);
+                }
+            }
+
+            var skipNumber = (query.PageNumber - 1) * query.PageSize; //New
+
+            return await posts.Skip(skipNumber).Take(query.PageSize).ToListAsync(); //Modified
+        }
+
+Now we can set the page we're on and how many posts we want to return.
+Try it out with dotnet watch run
