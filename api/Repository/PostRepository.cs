@@ -55,6 +55,19 @@ namespace api.Repository
                 posts = posts.Where(p => p.Body.Contains(query.Body));
             }
 
+            if(!string.IsNullOrWhiteSpace(query.SortBy))
+            {
+                if(query.SortBy.Equals("Title", StringComparison.OrdinalIgnoreCase))
+                {
+                    posts = query.IsDescending ? posts.OrderByDescending(p => p.Title) : posts.OrderBy(p => p.Title);
+                }
+
+                if(query.SortBy.Equals("Body", StringComparison.OrdinalIgnoreCase))
+                {
+                    posts = query.IsDescending ? posts.OrderByDescending(p => p.Body) : posts.OrderBy(p => p.Body);
+                }
+            }
+
             return await posts.ToListAsync();
             // code before step 14 Filtering below
             // return await _context.Posts.Include(c => c.Comments).ToListAsync();

@@ -9,5 +9,7 @@ namespace api.Helpers
     {
         public string? Title { get; set; } = null;
         public string? Body { get; set; } = null;
+        public string? SortBy { get; set; } = null;
+        public bool IsDescending { get; set; } = false;
     }
 }

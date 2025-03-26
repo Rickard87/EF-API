@@ -16,6 +16,6 @@ namespace api.Dtos.Post
         // public List<api.Models.Comment> Comments { get; set; } = new List<api.Models.Comment>();
 
         //This line is not implemented until step 12 Comment System
-        public List<CommentDto> Comments { get; set; }
+        public List<CommentDto>? Comments { get; set; }
     }
 }
