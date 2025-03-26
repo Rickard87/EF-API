@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Post;
+using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
@@ -30,7 +31,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
         {
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -38,7 +39,7 @@ namespace api.Controllers
             // ToList() startar själva exekveringen av frågan till databasen (SQL-fråga) som EF formulerar åt oss i bakgrunden när vi använder _context.Posts.
             // Detta kallas för deferred execution (fördröjd exekvering), vilket innebär att vi kan formulera frågan först i en query. Vi kan lägga till filtrering,
             // sortering och andra operationer innan vi faktiskt exekverar frågan. På så sätt gör vi bara en fråga till databasen istället för flera, vilket förbättrar prestanda.
-            var posts = await _postRepo.GetAllAsync();
+            var posts = await _postRepo.GetAllAsync(query);
             var postDto = posts.Select(s => s.ToPostDto());
             //Returnera resultatet från databasen
 
@@ -98,7 +99,7 @@ namespace api.Controllers
         {
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
-                
+
             var postModel = await _postRepo.DeleteAsync(id);
             
             if (postModel == null)

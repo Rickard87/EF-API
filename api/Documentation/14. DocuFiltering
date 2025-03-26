@@ -1,0 +1,51 @@
+Most of the time we are going to get data in the form of a list and that is why list is very important.
+When we get data from a database it is generating SQL and calling ToList is what fires the SQL and gets us that data back.
+If we want to filter and limit we can add more LINQ commands to our Entity Framework mechanism.
+AsQueryable is going to delay the firing of the SQL so that we can filter and limit before we use ToList.
+
+We do not need filtering for our Comments but we will use it for our Post.
+We want to change our methods a bit so that we can pass in through query parameters instead of route.
+(http://localhost:5297/api/post?Title=first)
+
+1. Make a new folder inside api and call it Helpers
+2. Create a csharp file inside it and call it QueryObject.cs.
+    Make it look like this so that we have 2 query options:
+    public class QueryObject
+    {
+        public string? Title { get; set; } = null;
+        public string? Body { get; set; } = null;
+    }
+3. Modify the interface of IPostRepository.cs so that the GetAllAsync method looks like this:
+    Task<List<Post>> GetAllAsync(QueryObject query);
+4. Modify the PostRepository.cs so that it also takes this parameter like this:
+    public async Task<List<Post>> GetAllAsync(QueryObject query)
+        {
+            var posts = _context.Posts.Include(c => c.Comments).AsQueryable();
+
+            if(!string.IsNullOrWhiteSpace(query.Title))
+            {
+                posts = posts.Where(p => p.Title.Contains(query.Title));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Body))
+            {
+                posts = posts.Where(p => p.Body.Contains(query.Body));
+            }
+
+            return await posts.ToListAsync();
+        }
+5. Modify the PostController.cs so that it also takes this parameter from query like this:
+    [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
+        {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var posts = await _postRepo.GetAllAsync(query);
+            var postDto = posts.Select(s => s.ToPostDto());
+
+            return Ok(posts);
+        }
+
+Try it out with dotnet watch run. Try with and without filling anything inside title or body.
+You should see both the Posts and its Comments still.

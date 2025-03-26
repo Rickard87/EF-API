@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Post;
+using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
@@ -40,9 +41,23 @@ namespace api.Repository
             return postModel;
         }
 
-        public async Task<List<Post>> GetAllAsync()
+        public async Task<List<Post>> GetAllAsync(QueryObject query)
         {
-            return await _context.Posts.Include(c => c.Comments).ToListAsync();
+            var posts = _context.Posts.Include(c => c.Comments).AsQueryable();
+
+            if(!string.IsNullOrWhiteSpace(query.Title))
+            {
+                posts = posts.Where(p => p.Title.Contains(query.Title));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Body))
+            {
+                posts = posts.Where(p => p.Body.Contains(query.Body));
+            }
+
+            return await posts.ToListAsync();
+            // code before step 14 Filtering below
+            // return await _context.Posts.Include(c => c.Comments).ToListAsync();
             // code before step 12 Comment System below
             // return await _context.Posts.ToListAsync();
         }
