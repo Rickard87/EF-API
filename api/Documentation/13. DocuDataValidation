@@ -1,0 +1,33 @@
+//While CommentController.cs and PostController.cs have an old file, the DTO's Data Validation annotations/attributes does not, so here is where that will be found out in step 2.
+
+Data Validation makes sure the people who are submitting data to the API do so in the correct format.
+It comes in many forms but a couple of common forms:
+    The first is going to be simple types, when you actually submit the URL ([HttpGet"{id}], [FromRoute] int id).
+        This is a form of data validation in itself because if we expect for example an integer it will give us an error when we submit.
+    The second is going to be complex types, the data validation for our JSON.
+        When we submit JSON it's going to submit an entire object(JSON).
+        We have to put our data annotations within the actual DTO.
+
+We are going to start with URL-constraints/Route-constraints
+1. For both CommentController.cs and PostController.cs, change the [HttpGet("{id}")] to require int/type checking by editing all attributes into [HttpGet("{id:int}")]
+    If we now try to pass in a string it's going to give us a 404-error.
+    To test it out in Swagger with dotnet watch run it won't work.
+    We have to do a workaround by passing in an integer in Swagger and use the address and try to insert a string instead of a number, that will give us our 404 error.
+    i.e. http://localhost:5297/api/comment/3 into http://localhost:5297/api/comment/str = HTTP ERROR 404.
+
+    Now a little more complex types of Data Validation but we keep it simple
+    We're going to have Data Validation annotations/attributes on top of our properties inside our DTO's, don't do it in the models, we don't want it globally.
+    By using [Required] it's going to bring in the Data Validations library for us.
+2. Go into the Dtos folder and add [Required] annotation to some properties and check out the files to see example of what kind of validations we add.
+    Even though we have all these data annotatoins now inside out DTO's. Nothing's gonna happen until we tell .NET to perform validation.
+    But we have already abstractions on top of abstractions. All we have to do is what's called ModelState inside our Controllers.
+3. Go into CommentController.cs and add these lines in the methods:
+    if (!ModelState.IsValid)
+        return BadRequest(ModelState);
+
+        ModelState is inheriting from ControllerBase in our CommentController class and ControllerBase is giving us the ModelState object.
+        Each time this Controller executes it's going to give us a brand new ModelState object and if our ModelState is not valid it's going to trigger the BadRequest.
+        We technically don't need the ModelState check for GetAll but it's good just to add it in case we add DataValidation for that request later.
+
+Now go ahead and test all the endpoints with Swagger dotnet watch run and try to insert a Title or Body that is less than 5 characters for Post and Comment
+and you should get an error code of 400 with Error: Bad Request. Go ahead and try more valid and unvalid options for Post and Put.

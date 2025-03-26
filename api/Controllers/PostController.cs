@@ -32,6 +32,9 @@ namespace api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             // ToList() startar själva exekveringen av frågan till databasen (SQL-fråga) som EF formulerar åt oss i bakgrunden när vi använder _context.Posts.
             // Detta kallas för deferred execution (fördröjd exekvering), vilket innebär att vi kan formulera frågan först i en query. Vi kan lägga till filtrering,
             // sortering och andra operationer innan vi faktiskt exekverar frågan. På så sätt gör vi bara en fråga till databasen istället för flera, vilket förbättrar prestanda.
@@ -48,9 +51,12 @@ namespace api.Controllers
         // // However, in this case, the 'id' is automatically retrieved from the URL, 
         // // specifically from the part of the URL defined as {id}, and it's passed to the method 
         // // via the [FromRoute] attribute. In this case api/post/{id} (see Route at the top).
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             //Find is a form of search that is going to find by the id. You could use First or Default, but Find is best because we are searching for a certain id (and more obvious).
             var post = await _postRepo.GetByIdAsync(id);
 
@@ -64,14 +70,20 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreatePostRequestDto postDto)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var postModel = postDto.ToPostFromCreateDto();
             await _postRepo.CreateAsync(postModel);
             return CreatedAtAction(nameof(GetById), new { id = postModel.Id }, postModel.ToPostDto());
         }
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdatePostRequestDto updateDto)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var postModel = await _postRepo.UpdateAsync(id, updateDto);
             if (postModel == null)
             {
@@ -81,9 +93,12 @@ namespace api.Controllers
             return Ok(postModel.ToPostDto());
         }
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+                
             var postModel = await _postRepo.DeleteAsync(id);
             
             if (postModel == null)
